@@ -1,6 +1,6 @@
-type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
+import { IApi, ApiPostMethods } from '../../types/index.ts';
 
-export class Api {
+export class Api implements IApi {
     readonly baseUrl: string;
     protected options: RequestInit;
 
@@ -14,24 +14,33 @@ export class Api {
         };
     }
 
-    protected handleResponse<T>(response: Response): Promise<T> {
-        if (response.ok) return response.json();
-        else return response.json()
-            .then(data => Promise.reject(data.error ?? response.statusText));
-    }
-
-    get<T extends object>(uri: string) {
-        return fetch(this.baseUrl + uri, {
+    async get<T extends object | undefined>(uri: string): Promise<T> {
+        const response = await fetch(`${this.baseUrl}${uri}`, {
             ...this.options,
-            method: 'GET'
-        }).then(this.handleResponse<T>);
+            method: 'GET',
+        });
+        return this.handleResponse<T>(response);
     }
 
-    post<T extends object>(uri: string, data: object, method: ApiPostMethods = 'POST') {
-        return fetch(this.baseUrl + uri, {
+    async post<T extends object | void>(
+        uri: string,
+        data: object,
+        method: ApiPostMethods = ApiPostMethods.POST
+    ): Promise<T> {
+        const response = await fetch(`${this.baseUrl}${uri}`, {
             ...this.options,
             method,
-            body: JSON.stringify(data)
-        }).then(this.handleResponse<T>);
+            body: JSON.stringify(data),
+        });
+        return this.handleResponse<T>(response);
+    }
+
+    protected async handleResponse<T>(response: Response): Promise<T> {
+        if (!response.ok) {
+            // Сервер часто кладёт пояснение ошибки в тело ответа
+            const data = await response.json().catch(() => null);
+            throw new Error(data?.error ?? `Ошибка ${response.status}: ${response.statusText}`);
+        }
+        return response.json() as Promise<T>;
     }
 }
