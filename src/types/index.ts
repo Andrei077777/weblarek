@@ -1,15 +1,10 @@
-//export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
-export const enum ApiPostMethods {
-  POST = 'POST',
-  PUT = 'PUT',
-  DELETE = 'DELETE'
-}
+export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
+
+export type TBuyerErrors = Partial<Record<keyof IBuyer, string>>;
 
 export interface IApi {
-    //get<T extends object>(uri: string): Promise<T>;
-   //post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>;
-  get<T extends object | undefined>(uri: string): Promise<T>;
-  post<T extends object | void>(uri: string, data: object, method?: ApiPostMethods): Promise<T>;
+  get<T extends object>(uri: string): Promise<T>;
+  post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>;
 }
 
 export type TPayment = "card" | "cash";
@@ -31,3 +26,21 @@ export interface IBuyer {
   phone: string;
   address: string;
 }
+
+export type ApiProductsResponse = {
+  items: IProduct[];
+};
+
+// Тип для данных заказа, которые мы отправляем на сервер
+// В реальном приложении здесь может быть больше полей (id пользователя, дата и т.д.)
+export type OrderRequestData = {
+  buyer: IBuyer;
+  // В будущем здесь будет массив товаров из корзины
+  // products: IProduct[];
+};
+
+// Тип для подтверждения заказа от сервера
+export type OrderConfirmation = {
+  message: string;
+  totalSum: number;
+};

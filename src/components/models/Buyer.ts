@@ -1,7 +1,7 @@
-import { IBuyer, TPayment } from '../../types/index.ts';
-import { IApi, ApiPostMethods } from '../../types/index.ts'; // Импортируем интерфейс API
+import { IBuyer, TPayment, TBuyerErrors } from '../../types/index.ts';
 
 export class Buyer {
+  // Данные покупателя
   private data: IBuyer = {
     payment: null,
     email: '',
@@ -9,12 +9,10 @@ export class Buyer {
     address: '',
   };
 
-  private api: IApi;
+  // Конструктор теперь пустой, как и требовалось по ТЗ
+  constructor() { }
 
-  constructor(api: IApi) {
-    this.api = api;
-  }
-
+  // Методы для изменения данных
   setData(data: Partial<IBuyer>): void {
     this.data = { ...this.data, ...data };
   }
@@ -24,10 +22,12 @@ export class Buyer {
   setPhone(phone: string): void { this.data.phone = phone; }
   setAddress(address: string): void { this.data.address = address; }
 
+  // Метод для получения данных
   getData(): IBuyer {
     return this.data;
   }
 
+  // Метод для очистки данных
   clear(): void {
     this.data = {
       payment: null,
@@ -37,8 +37,9 @@ export class Buyer {
     };
   }
 
-  validate(): { [key in keyof IBuyer]?: string } {
-    const errors: { [key in keyof IBuyer]?: string } = {};
+  // Метод валидации с использованием нового типа TBuyerErrors
+  validate(): TBuyerErrors {
+    const errors: TBuyerErrors = {};
 
     if (!this.data.payment) {
       errors.payment = 'Не выбран вид оплаты';
@@ -54,12 +55,5 @@ export class Buyer {
     }
 
     return errors;
-  }
-
-  // Метод для отправки данных покупателя на сервер (например, при оформлении заказа)
-  async submitOrder(): Promise<void> {
-    await this.api.post<void>('/order', this.data, ApiPostMethods.POST);
-    // После успешной отправки можно очистить данные покупателя
-    this.clear();
   }
 }
