@@ -28,6 +28,7 @@ export interface IBuyer {
 }
 
 export type ApiProductsResponse = {
+  total: number;
   items: IProduct[];
 };
 

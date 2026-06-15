@@ -1,17 +1,12 @@
 import { IProduct } from '../../types/index.ts';
-// Импорт IApi убран, так как модель не должна зависеть от API
 
 export class Products {
-  // Поле для хранения API-клиента удалено
-  // private api: IApi;
-
+  
   private items: IProduct[] = [];
   private selectedProduct: IProduct | null = null;
 
-  // Конструктор оставлен пустым, как того требует ТЗ
   constructor() { }
 
-  // Метод loadItems() удален, так как получение данных - не задача модели.
   // Теперь данные в модель загружаются извне (например, из ApiService).
 
   // Метод для заполнения модели данными (например, полученными от ApiService)

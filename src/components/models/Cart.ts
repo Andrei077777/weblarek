@@ -10,15 +10,15 @@ export class Cart {
     return this.items;
   }
 
-  // Метод только обновляет локальный массив
-  async addItem(product: IProduct): Promise<void> {
+  // Добавляет товар в корзину, если его там ещё нет
+  addItem(product: IProduct): void {
     if (!this.isInCart(product.id)) {
       this.items.push(product);
     }
   }
 
-  // Метод только обновляет локальный массив
-  async removeItem(id: string): Promise<void> {
+  // Удаляет товар из корзины по его id
+  removeItem(id: string): void {
     this.items = this.items.filter(item => item.id !== id);
   }
 
