@@ -10,17 +10,12 @@ import { ensureElement } from '../../utils/utils';
 export abstract class Card<T> extends Component<T> {
     protected _title: HTMLElement;
     protected _price: HTMLElement;
-    protected _id = '';
 
     constructor(container: HTMLElement, protected events: IEvents) {
         super(container);
+
         this._title = ensureElement<HTMLElement>('.card__title', container);
         this._price = ensureElement<HTMLElement>('.card__price', container);
-    }
-
-    // id товара хранится для передачи в событиях, данными модели не является
-    set id(value: string) {
-        this._id = value;
     }
 
     set title(value: string) {
@@ -28,6 +23,9 @@ export abstract class Card<T> extends Component<T> {
     }
 
     set price(value: number | null) {
-        this.setText(this._price, value === null ? 'Бесценно' : `${value} синапсов`);
+        this.setText(
+            this._price,
+            value === null ? 'Бесценно' : `${value} синапсов`
+        );
     }
 }

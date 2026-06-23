@@ -13,7 +13,8 @@ import { ApiService } from './components/base/ApiService';
 import { EventEmitter } from './components/base/Events';
 
 // Компоненты представления
-import { Page } from './components/views/Page';
+import { HeaderView } from './components/views/HeaderView';
+import { GalleryView } from './components/views/GalleryView';
 import { Modal } from './components/views/Modal';
 import { CardCatalog } from './components/views/CardCatalog';
 import { CardPreview } from './components/views/CardPreview';
@@ -50,7 +51,9 @@ const contactsTemplate = ensureElement<HTMLTemplateElement>('#contacts');
 const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 
 // Постоянные компоненты представления
-const page = new Page(document.body, events);
+//const page = new Page(document.body, events);
+const header = new HeaderView(document.body, events);
+const gallery = new GalleryView(document.body);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 const basket = new Basket(cloneTemplate(basketTemplate), events);
 const preview = new CardPreview(cloneTemplate(cardPreviewTemplate), events);
@@ -75,7 +78,11 @@ function toCatalogCard(product: IProduct): ICardCatalog {
 // Перерисовка содержимого корзины на основе данных модели
 function renderBasket(): void {
     const items = cartModel.getItems().map((product, index) => {
-        const card = new CardBasket(cloneTemplate(cardBasketTemplate), events);
+        const card = new CardBasket(cloneTemplate(cardBasketTemplate), events,    () => {
+                events.emit(Events.CARD_REMOVE, {
+                    id: product.id,
+                });
+            });
         return card.render({
             id: product.id,
             index: index + 1,
@@ -87,16 +94,20 @@ function renderBasket(): void {
 }
 
 // Состояние формы первого шага (валидность + текст ошибок)
-function orderFormState() {
+function  updateOrderFormState() {
     const errors = buyerModel.validate();
     return {
+        payment: buyerModel.getData().payment,
+        address: buyerModel.getData().address,
         valid: !errors.payment && !errors.address,
-        errors: [errors.payment, errors.address].filter(Boolean).join('; '),
+        errors: [errors.payment, errors.address]
+            .filter(Boolean)
+            .join('; '),
     };
 }
 
 // Состояние формы второго шага (валидность + текст ошибок)
-function contactsFormState() {
+function getcontactsFormState() {
     const errors = buyerModel.validate();
     return {
         valid: !errors.email && !errors.phone,
@@ -109,10 +120,20 @@ function contactsFormState() {
 // Каталог загружен/изменён — перерисовываем список карточек на главной
 events.on(Events.CATALOG_CHANGED, () => {
     const cards = productsModel.getItems().map((product) => {
-        const card = new CardCatalog(cloneTemplate(cardCatalogTemplate), events);
+        const card = new CardCatalog(
+            cloneTemplate(cardCatalogTemplate),
+            events,
+            () => {
+                events.emit(Events.CARD_SELECT, {
+                    id: product.id,
+                });
+            }
+        );
+
         return card.render(toCatalogCard(product));
     });
-    page.render({ catalog: cards });
+
+    gallery.render({ catalog: cards });
 });
 
 // Выбран товар для просмотра — показываем его в модальном окне
@@ -125,7 +146,7 @@ events.on(Events.PREVIEW_CHANGED, () => {
     const button = unavailable ? 'Недоступно' : inCart ? 'Удалить из корзины' : 'В корзину';
 
     modal.render({
-        content: preview.render({
+        content: preview.setId(product.id).render({
             id: product.id,
             title: product.title,
             category: product.category,
@@ -141,14 +162,14 @@ events.on(Events.PREVIEW_CHANGED, () => {
 
 // Изменилось содержимое корзины — обновляем счётчик и содержимое корзины
 events.on(Events.CART_CHANGED, () => {
-    page.render({ counter: cartModel.getCount() });
+    header.render({ counter: cartModel.getCount() });
     renderBasket();
 });
 
 // Изменились данные покупателя — обновляем состояние открытой формы
 events.on(Events.BUYER_CHANGED, () => {
-    orderForm.render({ payment: buyerModel.getData().payment, ...orderFormState() });
-    contactsForm.render(contactsFormState());
+    orderForm.render(updateOrderFormState() );
+    contactsForm.render(getcontactsFormState());
 });
 
 /* ===================== Обработчики событий Представлений ===================== */
@@ -181,9 +202,8 @@ events.on(Events.BASKET_OPEN, () => {
 
 // Открытие формы первого шага оформления заказа
 events.on(Events.ORDER_OPEN, () => {
-    const { payment, address } = buyerModel.getData();
     modal.render({
-        content: orderForm.render({ payment, address, ...orderFormState() }),
+        content: orderForm.render(updateOrderFormState()),
     });
     modal.open();
 });
@@ -198,7 +218,7 @@ events.on(Events.ORDER_CHANGE, (data: { field: string; value: string }) => {
 events.on(Events.ORDER_SUBMIT, () => {
     const { email, phone } = buyerModel.getData();
     modal.render({
-        content: contactsForm.render({ email, phone, ...contactsFormState() }),
+        content: contactsForm.render({ email, phone, ...getcontactsFormState() }),
     });
     modal.open();
 });
@@ -220,10 +240,10 @@ events.on(Events.CONTACTS_SUBMIT, () => {
 
     apiService
         .sendOrder(order)
-        .then(() => {
+        .then((result) => {
             cartModel.clear();
             buyerModel.clear();
-            modal.render({ content: success.render({ total }) });
+            modal.render({ content: success.render({ total: result.total }) });
             modal.open();
         })
         .catch((error) => console.error('Ошибка при оформлении заказа:', error));
@@ -238,7 +258,7 @@ events.on(Events.SUCCESS_CLOSE, () => {
 
 // Начальное состояние корзины (пустая) и счётчика
 renderBasket();
-page.render({ counter: cartModel.getCount() });
+header.render({ counter: cartModel.getCount() });
 
 // Запрос каталога товаров с сервера и сохранение в модель
 apiService

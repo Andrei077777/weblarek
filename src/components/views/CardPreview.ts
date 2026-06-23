@@ -14,6 +14,7 @@ export class CardPreview extends Card<ICardPreview> {
     protected _image: HTMLImageElement;
     protected _description: HTMLElement;
     protected _button: HTMLButtonElement;
+    protected _id:string;
 
     constructor(container: HTMLElement, events: IEvents) {
         super(container, events);
@@ -21,10 +22,15 @@ export class CardPreview extends Card<ICardPreview> {
         this._image = ensureElement<HTMLImageElement>('.card__image', container);
         this._description = ensureElement<HTMLElement>('.card__text', container);
         this._button = ensureElement<HTMLButtonElement>('.card__button', container);
+        this._id = '';
 
         this._button.addEventListener('click', () => {
             this.events.emit(Events.CARD_ADD, { id: this._id });
         });
+    } 
+    public setId(value: string) {
+        this._id = value;
+        return this;
     }
 
     set category(value: string) {

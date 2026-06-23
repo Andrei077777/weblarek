@@ -43,7 +43,7 @@ export type OrderRequestData = {
 // Тип для подтверждения заказа от сервера
 export type OrderConfirmation = {
   message: string;
-  totalSum: number;
+  total: number;
 };
 
 // ===== Типы слоя представления (View) =====

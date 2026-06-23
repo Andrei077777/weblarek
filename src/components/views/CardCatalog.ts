@@ -12,25 +12,44 @@ export class CardCatalog extends Card<ICardCatalog> {
     protected _category: HTMLElement;
     protected _image: HTMLImageElement;
 
-    constructor(container: HTMLElement, events: IEvents) {
+    constructor(
+        container: HTMLElement,
+        events: IEvents,
+        protected onClick: () => void
+    ) {
         super(container, events);
-        this._category = ensureElement<HTMLElement>('.card__category', container);
-        this._image = ensureElement<HTMLImageElement>('.card__image', container);
+
+        this._category = ensureElement<HTMLElement>(
+            '.card__category',
+            container
+        );
+        this._image = ensureElement<HTMLImageElement>(
+            '.card__image',
+            container
+        );
 
         this.container.addEventListener('click', () => {
-            this.events.emit(Events.CARD_SELECT, { id: this._id });
+            this.onClick();
         });
     }
 
     set category(value: string) {
         this.setText(this._category, value);
-        // Сбрасываем модификатор фона из темплейта и ставим соответствующий категории
+
         this._category.className = 'card__category';
+
         const modifier = categoryMap[value];
-        if (modifier) this.toggleClass(this._category, modifier, true);
+
+        if (modifier) {
+            this.toggleClass(this._category, modifier, true);
+        }
     }
 
     set image(value: string) {
-        this.setImage(this._image, value, this._title.textContent ?? '');
+        this.setImage(
+            this._image,
+            value,
+            this._title.textContent ?? ''
+        );
     }
 }
