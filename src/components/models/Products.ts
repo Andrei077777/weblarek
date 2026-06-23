@@ -1,17 +1,19 @@
 import { IProduct } from '../../types/index.ts';
+import { IEvents } from '../base/Events';
+import { Events } from '../../utils/constants';
 
 export class Products {
-  
+
   private items: IProduct[] = [];
   private selectedProduct: IProduct | null = null;
 
-  constructor() { }
-
-  // Теперь данные в модель загружаются извне (например, из ApiService).
+  // Модель получает брокер событий, чтобы уведомлять об изменениях данных
+  constructor(protected events: IEvents) { }
 
   // Метод для заполнения модели данными (например, полученными от ApiService)
   setItems(items: IProduct[]): void {
     this.items = items;
+    this.events.emit(Events.CATALOG_CHANGED);
   }
 
   getItems(): IProduct[] {
@@ -24,6 +26,7 @@ export class Products {
 
   setSelectedProduct(product: IProduct): void {
     this.selectedProduct = product;
+    this.events.emit(Events.PREVIEW_CHANGED);
   }
 
   getSelectedProduct(): IProduct | null {

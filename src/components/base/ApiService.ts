@@ -1,5 +1,5 @@
 import { IApi } from '../../types/index.ts';
-import { ApiProductsResponse, OrderRequestData, OrderConfirmation } from '../../types/index.ts';
+import { ApiProductsResponse, IOrderRequest, OrderConfirmation } from '../../types/index.ts';
 
 export class ApiService {
   private api: IApi;
@@ -17,7 +17,8 @@ export class ApiService {
   }
 
   // Метод для отправки заказа на сервер
-  async sendOrder(orderData: OrderRequestData): Promise<OrderConfirmation> {
+  // Принимает данные покупателя вместе со списком id товаров и итоговой суммой
+  async sendOrder(orderData: IOrderRequest): Promise<OrderConfirmation> {
     // Используем метод post из внедренного объекта api
     const response = await this.api.post<OrderConfirmation>(
       '/order/',
