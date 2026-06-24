@@ -146,7 +146,7 @@ events.on(Events.PREVIEW_CHANGED, () => {
     const button = unavailable ? 'Недоступно' : inCart ? 'Удалить из корзины' : 'В корзину';
 
     modal.render({
-        content: preview.setId(product.id).render({
+        content: preview.render({
             id: product.id,
             title: product.title,
             category: product.category,
@@ -181,8 +181,8 @@ events.on(Events.CARD_SELECT, (data: { id: string }) => {
 });
 
 // Нажата кнопка покупки в карточке просмотра — добавляем или удаляем товар, закрываем окно
-events.on(Events.CARD_ADD, (data: { id: string }) => {
-    const product = productsModel.getItemById(data.id);
+events.on(Events.CARD_ADD, () => {
+    const product = productsModel.getSelectedProduct();
     if (!product) return;
     if (cartModel.isInCart(product.id)) cartModel.removeItem(product.id);
     else cartModel.addItem(product);
